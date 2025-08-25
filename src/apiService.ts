@@ -114,6 +114,29 @@ export class ApiService {
   }
 
   /**
+ * Get recording for a specific message
+ */
+  async getRecording(messageId: string, locationId: string): Promise<string> {
+    try {
+      const url = `/conversations/messages/${messageId}/locations/${locationId}/recording`;
+
+      const response = await this.axiosInstance.get(url, {
+        headers: {
+          'Accept': 'audio/wav'
+        },
+        responseType: 'arraybuffer'
+      });
+
+      // Convertir a base64 para el frontend
+      const base64 = Buffer.from(response.data, 'binary').toString('base64');
+      return `data:audio/wav;base64,${base64}`;
+    } catch (error) {
+      //console.error(`Error fetching recording for messageId ${messageId}:`, error);
+      throw new Error(`Failed to fetch recording: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Get current auth token (for debugging purposes)
    */
   getAuthToken(): string | undefined {

@@ -135,3 +135,9 @@ export interface ClientConversationsResponse {
   fetchedAt: string;
 }
 
+export interface RecordingResponse {
+  recording: string; // base64 encoded audio
+  messageId: string;
+  locationId: string;
+}
+

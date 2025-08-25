@@ -9,7 +9,7 @@ export class CacheService {
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }
@@ -95,6 +95,13 @@ export class CacheService {
    */
   static getUserKey(userId: string): string {
     return `user:${userId}`;
+  }
+
+  /**
+ * Generate cache key for recording by message ID and location ID
+ */
+  static getRecordingKey(messageId: string, locationId: string): string {
+    return `recording:${messageId}:${locationId}`;
   }
 }
 

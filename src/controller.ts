@@ -85,10 +85,21 @@ export class ClientConversationsController {
                     user = await this.getUserWithCache(messageDetail.message.userId);
                   }
 
+                  // Get recording if it's a call
+                  let recording: string | undefined;
+                  if (message.messageType === 'TYPE_CALL') {
+                    try {
+                      recording = await this.getRecordingWithCache(message.id, message.locationId);
+                    } catch (error) {
+                      //console.warn(`No recording available for message ${message.id}:`, error);
+                    }
+                  }
+
                   return {
                     message,
                     messageDetail,
-                    user
+                    user,
+                    recording
                   };
                 } catch (error) {
                   console.error(`Error processing message ${message.id}:`, error);
@@ -96,7 +107,8 @@ export class ClientConversationsController {
                   return {
                     message,
                     messageDetail: undefined,
-                    user: undefined
+                    user: undefined,
+                    recording: undefined
                   };
                 }
               })
@@ -243,6 +255,30 @@ export class ClientConversationsController {
       }
       return undefined;
     }
+  }
+
+  /**
+ * Get recording with caching
+ */
+  private async getRecordingWithCache(messageId: string, locationId: string): Promise<string> {
+    const cacheKey = `recording:${messageId}:${locationId}`;
+
+    // Try to get from cache first
+    let recording = this.cacheService.get<string>(cacheKey);
+
+    if (recording) {
+      console.log(`Cache hit for recording: ${cacheKey}`);
+      return recording;
+    }
+
+    // Cache miss, fetch from API
+    console.log(`Cache miss for recording: ${cacheKey}, fetching from API`);
+    recording = await this.apiService.getRecording(messageId, locationId);
+
+    // Store in cache (las grabaciones pueden ser grandes, considera un TTL más corto)
+    this.cacheService.set(cacheKey, recording, 30 * 60 * 1000); // 30 minutos
+
+    return recording;
   }
 
   /**
